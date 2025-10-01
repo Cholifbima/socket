@@ -676,7 +676,6 @@ async function selectContact(user) {
     document.querySelectorAll('.contact-item').forEach(item => {
         item.classList.remove('active');
     });
-    event.currentTarget.classList.add('active');
     
     // Show chat header and input
     chatHeader.style.display = 'flex';
@@ -696,6 +695,14 @@ async function selectContact(user) {
     if (welcomeMessage) {
         welcomeMessage.style.display = 'none';
     }
+    
+    // Focus input after a short delay to ensure DOM is ready
+    setTimeout(() => {
+        const messageInput = document.getElementById('messageInput');
+        if (messageInput) {
+            messageInput.focus();
+        }
+    }, 100);
 }
 
 // File attachment functions
