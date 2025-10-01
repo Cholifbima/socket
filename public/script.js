@@ -332,8 +332,9 @@ async function displayMessage(message) {
     if (message.type === 'file') {
         // File message
         const file = message.file;
-        // If this is an S3 file and the data is not a signed URL, fetch a fresh signed URL
-        if (file && file.isS3 && file.key && (!file.data || !file.data.startsWith('http'))) {
+        // If this is an S3 file and the URL is not a signed URL (no X-Amz- params), fetch a fresh signed URL
+        const needsSigned = file && file.isS3 && file.key && (!file.data || !/X-Amz-Algorithm|X-Amz-Signature/i.test(file.data));
+        if (needsSigned) {
             try {
                 // synchronous await to get fresh URL before rendering
                 const res = await fetch(`/api/files/${encodeURIComponent(file.key)}/signed`);
