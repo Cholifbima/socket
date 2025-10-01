@@ -282,6 +282,23 @@ app.get('/api/files/:fileKey', async (req, res) => {
   }
 });
 
+// Generate a temporary signed URL to access private S3 object
+app.get('/api/files/:fileKey/signed', async (req, res) => {
+  try {
+    const { fileKey } = req.params;
+    const decodedKey = decodeURIComponent(fileKey);
+    const result = await s3Helper.getSignedUrl(decodedKey, 60 * 10); // 10 minutes
+    if (result.success) {
+      res.json({ success: true, url: result.url });
+    } else {
+      res.status(404).json({ success: false, error: result.error || 'Not found' });
+    }
+  } catch (error) {
+    console.error('Signed URL error:', error);
+    res.status(500).json({ success: false, error: 'Failed to create signed URL' });
+  }
+});
+
 // Socket.IO connection handling
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);

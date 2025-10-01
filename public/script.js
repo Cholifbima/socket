@@ -338,7 +338,7 @@ async function displayMessage(message) {
         if (needsSigned) {
             try {
                 // synchronous await to get fresh URL before rendering
-                const res = await fetch(`/api/files/${encodeURIComponent(file.key)}/signed`);
+        const res = await fetch(`/api/files/${encodeURIComponent(file.key)}/signed`);
                 const js = await res.json();
                 if (js.success) {
                     file.data = js.url;
