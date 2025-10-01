@@ -59,6 +59,12 @@ async function writeJsonFile(filename, data) {
   await fs.writeFile(filename, JSON.stringify(data, null, 2));
 }
 
+// Build stable conversation folder name using sorted user ids
+function getConversationFolder(userAId, userBId) {
+  const ids = [String(userAId), String(userBId)].sort();
+  return `chat-files/${ids[0]}_${ids[1]}/`;
+}
+
 // Initialize data files if they don't exist
 async function initializeDataFiles() {
   try {
@@ -361,6 +367,19 @@ io.on('connection', (socket) => {
       socket.emit('message_sent', newMessage);
       
       console.log(`Message sent from ${senderId} to ${receiverId}`);
+
+      // Persist conversation history JSON to S3 per pair (best-effort)
+      try {
+        const folder = getConversationFolder(senderId, receiverId);
+        const convKey = `${folder}history.json`;
+        const conversation = messages.filter(m => (
+          (m.senderId === senderId && m.receiverId === receiverId) ||
+          (m.senderId === receiverId && m.receiverId === senderId)
+        ));
+        await s3Helper.putJson(convKey, conversation);
+      } catch (e) {
+        console.warn('Failed to persist conversation history to S3:', e.message);
+      }
     } catch (error) {
       console.error('Send message error:', error);
     }
