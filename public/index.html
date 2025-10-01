@@ -121,13 +121,9 @@
 
         <!-- Chat Area -->
         <div class="chat-area">
-            <!-- Mobile floating menu button (visible even before chat selected) -->
-            <button class="mobile-fab" id="mobileFab" onclick="toggleMobileSidebar()" aria-label="Open contacts">
-                <i class="fas fa-bars"></i>
-            </button>
             <div class="chat-header" id="chatHeader" style="display: none;">
-                <button class="mobile-menu-btn" onclick="toggleMobileSidebar()">
-                    <i class="fas fa-bars"></i>
+                <button class="mobile-back-btn" onclick="showContactsView()">
+                    <i class="fas fa-arrow-left"></i>
                 </button>
                 <div class="chat-user-info">
                     <div class="chat-user-avatar">
@@ -199,7 +195,7 @@
 
             <div class="chat-input" id="chatInput" style="display: none;">
                 <div class="input-actions">
-                    <button class="btn-icon" onclick="triggerFileUpload()">
+                    <button class="btn-icon file-btn" onclick="triggerFileUpload()">
                         <i class="fas fa-paperclip"></i>
                     </button>
                     <button class="btn-icon" onclick="toggleEmojiPicker()">

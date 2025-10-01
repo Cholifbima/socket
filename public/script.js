@@ -665,17 +665,28 @@ function closeMobileSidebar() {
     overlay.classList.remove('active');
 }
 
+// Show contacts view (mobile)
+function showContactsView() {
+    if (window.innerWidth <= 768) {
+        document.querySelector('.sidebar').style.display = 'block';
+        document.querySelector('.chat-area').classList.remove('active');
+    }
+}
+
 // Close mobile sidebar when contact is selected
 async function selectContact(user) {
     selectedContact = user;
-    
-    // Close mobile sidebar if open
-    closeMobileSidebar();
     
     // Update UI
     document.querySelectorAll('.contact-item').forEach(item => {
         item.classList.remove('active');
     });
+    
+    // On mobile: hide sidebar, show chat area
+    if (window.innerWidth <= 768) {
+        document.querySelector('.sidebar').style.display = 'none';
+        document.querySelector('.chat-area').classList.add('active');
+    }
     
     // Show chat header and input
     chatHeader.style.display = 'flex';
