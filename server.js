@@ -7,6 +7,11 @@ const { v4: uuidv4 } = require('uuid');
 const moment = require('moment');
 const fs = require('fs').promises;
 const path = require('path');
+const multer = require('multer');
+const { s3Helper } = require('./aws-config');
+
+// Load environment variables
+require('dotenv').config({ path: './config.env' });
 
 const app = express();
 const server = http.createServer(app);
@@ -23,6 +28,15 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
+
+// Configure multer for file uploads
+const storage = multer.memoryStorage();
+const upload = multer({
+    storage: storage,
+    limits: {
+        fileSize: 10 * 1024 * 1024 // 10MB limit
+    }
+});
 
 // Data storage files
 const USERS_FILE = 'users.json';
@@ -167,6 +181,88 @@ app.get('/api/messages/:userId', async (req, res) => {
   } catch (error) {
     console.error('Get messages error:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// S3 File Management APIs
+app.post('/api/upload', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const fileName = `${uuidv4()}-${req.file.originalname}`;
+    const result = await s3Helper.uploadFile(req.file, fileName);
+
+    if (result.success) {
+      res.json({
+        success: true,
+        url: result.url,
+        key: result.key,
+        fileName: req.file.originalname,
+        size: req.file.size
+      });
+    } else {
+      res.status(500).json({ error: result.error });
+    }
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).json({ error: 'Upload failed' });
+  }
+});
+
+app.delete('/api/files/:fileKey', async (req, res) => {
+  try {
+    const { fileKey } = req.params;
+    const result = await s3Helper.deleteFile(fileKey);
+
+    if (result.success) {
+      res.json({ success: true, message: result.message });
+    } else {
+      res.status(500).json({ error: result.error });
+    }
+  } catch (error) {
+    console.error('Delete error:', error);
+    res.status(500).json({ error: 'Delete failed' });
+  }
+});
+
+app.get('/api/files', async (req, res) => {
+  try {
+    const result = await s3Helper.listFiles();
+    
+    if (result.success) {
+      const files = result.files.map(file => ({
+        key: file.Key,
+        size: file.Size,
+        lastModified: file.LastModified,
+        url: `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${file.Key}`
+      }));
+      
+      res.json({ success: true, files });
+    } else {
+      res.status(500).json({ error: result.error });
+    }
+  } catch (error) {
+    console.error('List files error:', error);
+    res.status(500).json({ error: 'Failed to list files' });
+  }
+});
+
+app.get('/api/files/:fileKey', async (req, res) => {
+  try {
+    const { fileKey } = req.params;
+    const result = await s3Helper.getFile(fileKey);
+
+    if (result.success) {
+      res.set('Content-Type', result.contentType);
+      res.send(result.data);
+    } else {
+      res.status(404).json({ error: 'File not found' });
+    }
+  } catch (error) {
+    console.error('Get file error:', error);
+    res.status(500).json({ error: 'Failed to get file' });
   }
 });
 
