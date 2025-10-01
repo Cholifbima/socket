@@ -198,6 +198,14 @@ app.get('/api/conversation', async (req, res) => {
       (m.senderId === userA && m.receiverId === userB) ||
       (m.senderId === userB && m.receiverId === userA)
     );
+    // Best-effort: persist/refresh history.json for this conversation
+    try {
+      const folder = getConversationFolder(userA, userB);
+      const convKey = `${folder}history.json`;
+      await s3Helper.putJson(convKey, result);
+    } catch (e) {
+      console.warn('Failed to persist history on fetch:', e.message);
+    }
     res.json(result);
   } catch (error) {
     console.error('Get conversation error:', error);
