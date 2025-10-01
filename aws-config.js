@@ -21,9 +21,8 @@ const s3Helper = {
             const params = {
                 Bucket: BUCKET_NAME,
                 Key: `${folder}/${fileName}`,
-                Body: file,
-                ContentType: file.mimetype || 'application/octet-stream',
-                ACL: 'public-read' // Make file publicly accessible
+                Body: file.buffer || file,
+                ContentType: file.mimetype || 'application/octet-stream'
             };
 
             const result = await s3.upload(params).promise();
