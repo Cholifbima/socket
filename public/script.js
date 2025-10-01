@@ -60,12 +60,12 @@ function initializeEventListeners() {
 }
 
 // Authentication functions
-function showLoginForm() {
+window.showLoginForm = function () {
     loginForm.classList.add('active');
     registerForm.classList.remove('active');
 }
 
-function showRegisterForm() {
+window.showRegisterForm = function () {
     registerForm.classList.add('active');
     loginForm.classList.remove('active');
 }
@@ -321,7 +321,7 @@ function displayMessages() {
     scrollToBottom();
 }
 
-function displayMessage(message) {
+async function displayMessage(message) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${message.senderId === currentUser.id ? 'sent' : 'received'}`;
     messageDiv.dataset.messageId = message.id;
