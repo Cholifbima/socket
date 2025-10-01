@@ -192,7 +192,8 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
     }
 
     const fileName = `${uuidv4()}-${req.file.originalname}`;
-    const result = await s3Helper.uploadFile(req.file, fileName);
+    const folder = (req.body && req.body.folder) ? String(req.body.folder) : 'chat-files';
+    const result = await s3Helper.uploadFile(req.file, fileName, folder);
 
     if (result.success) {
       res.json({

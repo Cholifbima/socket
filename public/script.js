@@ -332,6 +332,19 @@ function displayMessage(message) {
     if (message.type === 'file') {
         // File message
         const file = message.file;
+        // If this is an S3 file and the data is not a signed URL, fetch a fresh signed URL
+        if (file && file.isS3 && file.key && (!file.data || !file.data.startsWith('http'))) {
+            try {
+                // synchronous await to get fresh URL before rendering
+                const res = await fetch(`/api/files/${encodeURIComponent(file.key)}/signed`);
+                const js = await res.json();
+                if (js.success) {
+                    file.data = js.url;
+                }
+            } catch (e) {
+                console.warn('Failed to fetch signed URL for display');
+            }
+        }
         const fileIcon = getFileIcon(file.type);
         const fileSize = formatFileSize(file.size);
         
