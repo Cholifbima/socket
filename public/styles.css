@@ -925,7 +925,7 @@ body {
     }
     
     .sidebar {
-        width: 280px;
+        width: 85vw;
         position: fixed;
         left: 0;
         top: 0;
@@ -971,7 +971,7 @@ body {
     
     .chat-messages {
         padding: 0.75rem;
-        height: calc(100vh - 140px);
+        height: calc(100vh - 160px);
     }
     
     .message {
@@ -1069,20 +1069,20 @@ body {
     }
     
     .contact-item {
-        padding: 0.6rem 0.75rem;
+        padding: 0.8rem 1rem;
     }
     
     .contact-avatar {
-        width: 42px;
-        height: 42px;
+        width: 48px;
+        height: 48px;
     }
     
     .contact-name {
-        font-size: 0.85rem;
+        font-size: 1rem;
     }
     
     .contact-status {
-        font-size: 0.7rem;
+        font-size: 0.8rem;
     }
     
     /* Toast Mobile */

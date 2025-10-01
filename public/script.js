@@ -296,7 +296,8 @@ function createContactElement(user) {
 
 async function loadMessages(userId) {
     try {
-        const response = await fetch(`/api/messages/${userId}`);
+        // Fetch only conversation between currentUser and selected user
+        const response = await fetch(`/api/conversation?userA=${encodeURIComponent(currentUser.id)}&userB=${encodeURIComponent(userId)}`);
         const data = await response.json();
         
         if (response.ok) {

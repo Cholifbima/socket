@@ -167,19 +167,34 @@ app.get('/api/users', async (req, res) => {
   }
 });
 
+// Legacy endpoint (kept for compatibility) – returns all messages involving a user
 app.get('/api/messages/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    const messages = await readJsonFile(MESSAGES_FILE);
-    
-    // Get messages for specific user conversation
-    const userMessages = messages.filter(msg => 
-      (msg.senderId === userId || msg.receiverId === userId)
-    );
-    
-    res.json(userMessages);
+    const all = await readJsonFile(MESSAGES_FILE);
+    const result = all.filter(m => m.senderId === userId || m.receiverId === userId);
+    res.json(result);
   } catch (error) {
     console.error('Get messages error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Proper conversation endpoint – only messages between userA and userB
+app.get('/api/conversation', async (req, res) => {
+  try {
+    const { userA, userB } = req.query;
+    if (!userA || !userB) {
+      return res.status(400).json({ error: 'userA and userB are required' });
+    }
+    const all = await readJsonFile(MESSAGES_FILE);
+    const result = all.filter(m =>
+      (m.senderId === userA && m.receiverId === userB) ||
+      (m.senderId === userB && m.receiverId === userA)
+    );
+    res.json(result);
+  } catch (error) {
+    console.error('Get conversation error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
