@@ -458,8 +458,11 @@ async function confirmBulkDelete() {
 async function deleteMessage(messageId) {
     try {
         const res = await fetch(`/api/messages/${messageId}`, { method: 'DELETE' });
-        const json = await res.json();
-        if (!res.ok || !json.success) throw new Error(json.error || 'Failed to delete');
+        let json = {};
+        try { json = await res.json(); } catch (_) { /* non-JSON error */ }
+        if (!res.ok) {
+            throw new Error(json.error || `Failed to delete (status ${res.status})`);
+        }
         // Remove from UI and local array
         const el = document.querySelector(`.message[data-message-id="${messageId}"]`);
         if (el) el.remove();

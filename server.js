@@ -305,6 +305,50 @@ app.get('/api/files/:fileKey/signed', async (req, res) => {
   }
 });
 
+// Delete a message by id and keep S3 in sync
+app.delete('/api/messages/:messageId', async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    const allMessages = await readJsonFile(MESSAGES_FILE);
+    const idx = allMessages.findIndex(m => m.id === messageId);
+    if (idx === -1) {
+      return res.status(404).json({ error: 'Message not found' });
+    }
+
+    const msg = allMessages[idx];
+    // Remove from local storage
+    allMessages.splice(idx, 1);
+    await writeJsonFile(MESSAGES_FILE, allMessages);
+
+    // If it was a file message, remove the object from S3
+    if (msg.type === 'file' && msg.file && msg.file.key) {
+      try {
+        await s3Helper.deleteFile(msg.file.key);
+      } catch (e) {
+        console.warn('Failed to delete S3 object:', e.message);
+      }
+    }
+
+    // Update history.json in S3 for this conversation (best-effort)
+    try {
+      const folder = getConversationFolder(msg.senderId, msg.receiverId);
+      const convKey = `${folder}history.json`;
+      const conversation = allMessages.filter(m => (
+        (m.senderId === msg.senderId && m.receiverId === msg.receiverId) ||
+        (m.senderId === msg.receiverId && m.receiverId === msg.senderId)
+      ));
+      await s3Helper.putJson(convKey, conversation);
+    } catch (e) {
+      console.warn('Failed to update S3 history after delete:', e.message);
+    }
+
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Delete message error:', error);
+    return res.status(500).json({ error: 'Failed to delete message' });
+  }
+});
+
 // Socket.IO connection handling
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
